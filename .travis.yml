@@ -1,0 +1,22 @@
+sudo: required
+services:
+  - docker
+
+before_install:
+  - docker build -t younggi/react-test -f ./client/Dockerfile.dev ./client
+
+script:
+  - docker run younggi/react-test npm test -- --coverage
+
+after_success:
+  - docker build -t younggi/multi-client ./client
+  - docker build -t younggi/multi-nginx ./nginx
+  - docker build -t younggi/multi-server ./server
+  - docker build -t younggi/multi-worker ./worker
+  # Log in to the docker CLI
+  - echo '$DOCKER_PASSWORD' | docker login -u "$DOCKER_ID" --password-stdin
+  # Take those images and push time to docker hub
+  - docker push younggi/multi-client
+  - docker push younggi/multi-nginx
+  - docker push younggi/multi-server
+  - docker push younggi/multi-worker
